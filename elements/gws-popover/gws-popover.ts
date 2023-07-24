@@ -15,12 +15,14 @@ export class Popover extends LitElement {
   @property({ type: Boolean, reflect: true })
   open = false;
 
-  /** The element that triggers the popover. */
-  triggerElement?: HTMLElement;
-
   /** The accessibility label for the popover region. */
   @property()
   label?: string;
+
+  /** The element that triggers the popover. */
+  triggerElement?: HTMLElement;
+
+  // TODO: Add ability to specify placement
 
   // NOTE: Looks like this isn't needed.
   // private originalParentElement?: HTMLElement;
