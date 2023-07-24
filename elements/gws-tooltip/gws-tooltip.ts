@@ -1,5 +1,12 @@
-import { customElement, property, query, state } from 'lit/decorators.js';
+import {
+  customElement,
+  property,
+  query,
+  queryAssignedElements,
+  state,
+} from 'lit/decorators.js';
 import { html, LitElement, unsafeCSS } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import styles from './gws-tooltip.scss?inline';
@@ -20,14 +27,28 @@ export class Tooltip extends LitElement {
   @query('.trigger')
   triggerElement: HTMLDivElement;
 
-  private popoverElement: Popover;
+  @state()
+  popoverElement: Popover;
 
-  /** Sets the popover element to the first slotted popover. */
   private handlePopoverSlotChange(e: Event) {
-    this.popoverElement = (
-      e.target as HTMLSlotElement
-    )?.assignedElements()?.[0] as Popover;
-    this.popoverElement?.attachTrigger(this.triggerElement);
+    this.popoverElement = (e.target as HTMLSlotElement)
+      .assignedElements()
+      .find((el) => el.tagName === 'GWS-POPOVER') as Popover;
+    // Ensure the state of the tooltip is updated whenever the popover is toggled.
+    this.popoverElement.addEventListener('toggle', () => this.requestUpdate());
+  }
+
+  showPopover() {
+    this.popoverElement.show();
+  }
+
+  togglePopover() {
+    this.popoverElement.toggle();
+  }
+
+  requestHidePopover(e: MouseEvent) {
+    // TODO: Verify "onmouseleave" triggering.
+    this.popoverElement.requestHide(e);
   }
 
   private renderInfoIcon() {
@@ -59,9 +80,10 @@ export class Tooltip extends LitElement {
       })}>
         <button
           class="trigger"
-          @click=${() => this.popoverElement?.toggle()}
-          @mouseenter=${() => this.popoverElement?.show()}
-          @mouseleave=${(e: MouseEvent) => this.popoverElement?.requestHide(e)}
+          aria-expanded=${ifDefined(this.popoverElement?.open)}
+          @click=${this.togglePopover}
+          @mouseenter=${this.showPopover}
+          @mouseleave=${(e: MouseEvent) => this.requestHidePopover(e)}
         >
           <slot></slot>
           <span class="info-icon">${this.renderInfoIcon()}</span>

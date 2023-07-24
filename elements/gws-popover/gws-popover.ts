@@ -1,5 +1,6 @@
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { html, LitElement, unsafeCSS } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { classMap } from 'lit/directives/class-map.js';
 import styles from './gws-popover.scss?inline';
 
@@ -11,11 +12,15 @@ export class Popover extends LitElement {
   static styles = unsafeCSS(styles);
 
   /** Whether the popover is open. */
-  @property()
+  @property({ type: Boolean, reflect: true })
   open = false;
 
   /** The element that triggers the popover. */
   triggerElement?: HTMLElement;
+
+  /** The accessibility label for the popover region. */
+  @property()
+  label?: string;
 
   // NOTE: Looks like this isn't needed.
   // private originalParentElement?: HTMLElement;
@@ -28,13 +33,14 @@ export class Popover extends LitElement {
   //   this.originalParentElement.appendChild(this);
   // }
 
-  // attributeChangedCallback(name: string, _old: string, value: string): void {
-  //   super.attributeChangedCallback(name, _old, value);
-  //   if (name === 'open') {
-  //     const isOpen = value;
-  //     isOpen ? this.relocateToBody() : this.relocateToOrigin();
-  //   }
-  // }
+  attributeChangedCallback(name: string, _old: string, value: string): void {
+    super.attributeChangedCallback(name, _old, value);
+    if (name === 'open') {
+      this.dispatchEvent(new CustomEvent('toggle'));
+      // const isOpen = value;
+      // isOpen ? this.relocateToBody() : this.relocateToOrigin();
+    }
+  }
 
   async show() {
     this.open = true;
@@ -70,6 +76,8 @@ export class Popover extends LitElement {
 
   render() {
     return html`<div
+      role="region"
+      aria-label=${ifDefined(this.label)}
       @mouseleave=${(e: MouseEvent) => this.requestHide(e)}
       class=${classMap({
         container: true,
