@@ -1,6 +1,7 @@
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { html, LitElement, unsafeCSS } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import styles from './gws-tooltip.scss?inline';
 import '../gws-popover/gws-popover';
 import { Popover } from '../gws-popover/gws-popover';
@@ -9,19 +10,21 @@ import { Popover } from '../gws-popover/gws-popover';
 export class Tooltip extends LitElement {
   static styles = unsafeCSS(styles);
 
-  @property({ type: Boolean, attribute: 'always-above' })
-  alwaysAbove = false;
+  /** How far the popover is positioned from the trigger element. */
+  @property({ type: Number })
+  offset?: number;
 
-  @state()
-  popoverBelow = true;
+  @query('.trigger')
+  triggerElement: HTMLDivElement;
 
   private popoverElement: Popover;
 
   /** Sets the popover element to the first slotted popover. */
-  handlePopoverSlotChange(e: Event) {
+  private handlePopoverSlotChange(e: Event) {
     this.popoverElement = (
       e.target as HTMLSlotElement
     )?.assignedElements()?.[0];
+    this.popoverElement.attachTrigger(this.triggerElement);
   }
 
   private renderInfoIcon() {
@@ -46,41 +49,26 @@ export class Tooltip extends LitElement {
     `;
   }
 
-  // Need to ensure the tooltips do not flow outside of the viewport.
-  private calculateTooltipPosition(): void {
-    if (this.alwaysAbove) {
-      this.popoverBelow = false;
-      return;
-    }
-    this.popoverBelow = true;
-    window.requestAnimationFrame(() => {
-      const tooltip = this.renderRoot.querySelector('.tooltip') as HTMLElement;
-      const { height: tooltipHeight, y: tooltipY } =
-        tooltip.getBoundingClientRect();
-      const hasEnoughRoomBelow = tooltipY + tooltipHeight < window.innerHeight;
-      this.popoverBelow = hasEnoughRoomBelow;
-    });
-  }
-
-  render() {
+  override render() {
     return html`
       <aside class=${classMap({
         container: true,
-        premium: this.variant === 'premium',
-        'tooltip-below': this.popoverBelow,
       })}>
-        <div
+        <button
           class="trigger"
+          @click=${() => this.popoverElement?.toggle()}
           @mouseenter=${() => this.popoverElement?.show()}
-          @mouseleave=${() => this.popoverElement?.hide()}
+          @mouseleave=${(e: MouseEvent) => this.popoverElement?.requestHide(e)}
         >
           <slot></slot>
           <span class="info-icon">${this.renderInfoIcon()}</span>
-        </div>
+        </button>
       </aside>
-      <slot name="popover" class="popover" @slotchange=${
-        this.handlePopoverSlotChange
-      }></slot>
+      <slot name="popover" class="popover"
+      style=${styleMap({
+        '--gws-popover-offset-y': `${this.offset ?? 5}px`,
+      })}
+        @slotchange=${this.handlePopoverSlotChange}></slot>
     `;
   }
 }

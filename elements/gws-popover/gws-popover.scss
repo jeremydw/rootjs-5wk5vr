@@ -8,9 +8,13 @@
   border-radius: 10px;
   overflow: hidden;
   padding: 10px;
+  position: relative;
   pointer-events: none;
   transition: opacity 300ms ease, visibility 300ms ease;
   max-width: 200px;
+  z-index: 99;
+  transform: translateY(var(--gws-popover-offset-y, 0))
+    translateX(var(--gws-popover-offset-x, 0));
 }
 
 .container:not(.container\:open) {
@@ -21,4 +25,5 @@
 .container\:open {
   opacity: 1;
   visibility: visible;
+  pointer-events: all;
 }

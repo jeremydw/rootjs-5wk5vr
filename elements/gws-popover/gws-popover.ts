@@ -11,6 +11,8 @@ export class Popover extends LitElement {
   @property()
   open = false;
 
+  triggerElement?: HTMLElement;
+
   private originalParentElement?: HTMLElement;
 
   relocateToBody() {
@@ -24,6 +26,7 @@ export class Popover extends LitElement {
 
   attributeChangedCallback(name: string, _old: string, value: string): void {
     super.attributeChangedCallback(name, _old, value);
+    // NOTE: This may not be neede
     if (name === 'open') {
       const isOpen = value;
       isOpen ? this.relocateToBody() : this.relocateToOrigin();
@@ -34,15 +37,34 @@ export class Popover extends LitElement {
     this.open = true;
   }
 
+  async requestHide(e: MouseEvent) {
+    const shouldHide = ![this.triggerElement, this].includes(
+      e.relatedTarget as HTMLElement
+    );
+    if (shouldHide) {
+      return await this.hide();
+    }
+  }
+
   async hide() {
     this.open = false;
   }
 
+  async toggle() {
+    this.open ? this.hide() : this.show();
+  }
+
+  attachTrigger(element: HTMLElement) {
+    this.triggerElement = element;
+  }
+
   render() {
-    return html`<div class=${classMap({
-      container: true,
-      'container:open': this.open,
-    })}><slot></slot>
+    return html`<div
+      @mouseleave=${(e: MouseEvent) => this.requestHide(e)}
+      class=${classMap({
+        container: true,
+        'container:open': this.open,
+      })}><slot></slot>
     </div>`;
   }
 }

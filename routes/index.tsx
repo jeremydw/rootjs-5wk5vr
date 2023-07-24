@@ -3,7 +3,7 @@ export function Page() {
     <>
       {/* Custom elements are intelligently collected by Root.js. */}
       <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #efefef; overflow: hidden">
-        <gws-tooltip>
+        <gws-tooltip offset="10">
           Tooltip prompt
           <gws-popover slot="popover">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
