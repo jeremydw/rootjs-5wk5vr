@@ -6,11 +6,14 @@ import styles from './gws-tooltip.scss?inline';
 import '../gws-popover/gws-popover';
 import { Popover } from '../gws-popover/gws-popover';
 
+/**
+ * An element that attaches a target to a popover and triggers the popover's open state.
+ */
 @customElement('gws-tooltip')
 export class Tooltip extends LitElement {
   static styles = unsafeCSS(styles);
 
-  /** How far the popover is positioned from the trigger element. */
+  /** Distance the popover is positioned from the trigger element. */
   @property({ type: Number })
   offset?: number;
 
@@ -23,8 +26,8 @@ export class Tooltip extends LitElement {
   private handlePopoverSlotChange(e: Event) {
     this.popoverElement = (
       e.target as HTMLSlotElement
-    )?.assignedElements()?.[0];
-    this.popoverElement.attachTrigger(this.triggerElement);
+    )?.assignedElements()?.[0] as Popover;
+    this.popoverElement?.attachTrigger(this.triggerElement);
   }
 
   private renderInfoIcon() {

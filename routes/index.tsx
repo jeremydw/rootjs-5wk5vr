@@ -1,8 +1,15 @@
 export function Page() {
   return (
     <>
-      {/* Custom elements are intelligently collected by Root.js. */}
-      <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #efefef; overflow: hidden">
+      {/* Ensure undefined popovers are hidden. */}
+      <style>
+        {`
+          gws-popover:not(:defined) {
+            display: none;
+          }
+        `}
+      </style>
+      <div style="height: 200px; display: flex; align-items: center; justify-content: center; background: #efefef; overflow: hidden;">
         <gws-tooltip offset="10">
           Tooltip prompt
           <gws-popover slot="popover">

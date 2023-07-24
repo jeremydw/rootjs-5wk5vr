@@ -3,6 +3,9 @@ import { html, LitElement, unsafeCSS } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import styles from './gws-popover.scss?inline';
 
+/**
+ * A simple element for showing content within a popover (like a tooltip or bubble).
+ */
 @customElement('gws-popover')
 export class Popover extends LitElement {
   static styles = unsafeCSS(styles);
@@ -11,32 +14,36 @@ export class Popover extends LitElement {
   @property()
   open = false;
 
+  /** The element that triggers the popover. */
   triggerElement?: HTMLElement;
 
-  private originalParentElement?: HTMLElement;
+  // NOTE: Looks like this isn't needed.
+  // private originalParentElement?: HTMLElement;
+  // relocateToBody() {
+  //   this.originalParentElement = this.parentElement;
+  //   document.body.appendChild(this);
+  // }
 
-  relocateToBody() {
-    this.originalParentElement = this.parentElement;
-    document.body.appendChild(this);
-  }
+  // relocateToOrigin() {
+  //   this.originalParentElement.appendChild(this);
+  // }
 
-  relocateToOrigin() {
-    this.originalParentElement.appendChild(this);
-  }
-
-  attributeChangedCallback(name: string, _old: string, value: string): void {
-    super.attributeChangedCallback(name, _old, value);
-    // NOTE: This may not be neede
-    if (name === 'open') {
-      const isOpen = value;
-      isOpen ? this.relocateToBody() : this.relocateToOrigin();
-    }
-  }
+  // attributeChangedCallback(name: string, _old: string, value: string): void {
+  //   super.attributeChangedCallback(name, _old, value);
+  //   if (name === 'open') {
+  //     const isOpen = value;
+  //     isOpen ? this.relocateToBody() : this.relocateToOrigin();
+  //   }
+  // }
 
   async show() {
     this.open = true;
   }
 
+  /**
+   * Tests whether the requesting mouse event is over the trigger or popover,
+   * and hides only if not.
+   */
   async requestHide(e: MouseEvent) {
     const shouldHide = ![this.triggerElement, this].includes(
       e.relatedTarget as HTMLElement
@@ -46,14 +53,17 @@ export class Popover extends LitElement {
     }
   }
 
+  /** Hides the popover. */
   async hide() {
     this.open = false;
   }
 
+  /** Toggles the popover's open state. */
   async toggle() {
     this.open ? this.hide() : this.show();
   }
 
+  /** Attaches another element as the "trigger" for this popover. */
   attachTrigger(element: HTMLElement) {
     this.triggerElement = element;
   }
