@@ -1,27 +1,27 @@
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { html, LitElement, unsafeCSS } from 'lit';
-import {classMap} from 'lit/directives/class-map.js';
+import { classMap } from 'lit/directives/class-map.js';
 import styles from './gws-tooltip.scss?inline';
-
-type Variant = 'premium';
+import '../gws-popover/gws-popover';
+import { Popover } from '../gws-popover/gws-popover';
 
 @customElement('gws-tooltip')
 export class Tooltip extends LitElement {
   static styles = unsafeCSS(styles);
 
-  @property()
-  variant?: Variant;
-
-  @property({type: Boolean, attribute: 'always-above'})
-  alwaysAbove: boolean;
+  @property({ type: Boolean, attribute: 'always-above' })
+  alwaysAbove = false;
 
   @state()
-  tooltipBelow: boolean;
+  popoverBelow = true;
 
-  constructor() {
-    super();
-    this.alwaysAbove = false;
-    this.tooltipBelow = true;
+  private popoverElement: Popover;
+
+  /** Sets the popover element to the first slotted popover. */
+  handlePopoverSlotChange(e: Event) {
+    this.popoverElement = (
+      e.target as HTMLSlotElement
+    )?.assignedElements()?.[0];
   }
 
   private renderInfoIcon() {
@@ -31,6 +31,7 @@ export class Tooltip extends LitElement {
         width="12"
         height="12"
         fill="none"
+        role="presentation"
       >
         <path
           fill="#1967D2"
@@ -48,41 +49,38 @@ export class Tooltip extends LitElement {
   // Need to ensure the tooltips do not flow outside of the viewport.
   private calculateTooltipPosition(): void {
     if (this.alwaysAbove) {
-      this.tooltipBelow = false;
+      this.popoverBelow = false;
       return;
     }
-
-    this.tooltipBelow = true;
+    this.popoverBelow = true;
     window.requestAnimationFrame(() => {
       const tooltip = this.renderRoot.querySelector('.tooltip') as HTMLElement;
-      const {height: tooltipHeight, y: tooltipY} =
+      const { height: tooltipHeight, y: tooltipY } =
         tooltip.getBoundingClientRect();
       const hasEnoughRoomBelow = tooltipY + tooltipHeight < window.innerHeight;
-      this.tooltipBelow = hasEnoughRoomBelow;
+      this.popoverBelow = hasEnoughRoomBelow;
     });
   }
 
   render() {
-    const classes = {
-      premium: this.variant === 'premium',
-      'tooltip-below': this.tooltipBelow,
-    };
     return html`
-      <aside class="container ${classMap(classes)}">
-        <div class="hover-area">
-          <div
-            class="content"
-            tabindex="0"
-            @mouseenter=${this.calculateTooltipPosition}
-          >
-            <slot name="content"></slot>
-          </div>
-          <div class="tooltip">
-            <slot name="tooltip"></slot>
-          </div>
-          <span class="info-icon"> ${this.renderInfoIcon()} </span>
+      <aside class=${classMap({
+        container: true,
+        premium: this.variant === 'premium',
+        'tooltip-below': this.popoverBelow,
+      })}>
+        <div
+          class="trigger"
+          @mouseenter=${() => this.popoverElement?.show()}
+          @mouseleave=${() => this.popoverElement?.hide()}
+        >
+          <slot></slot>
+          <span class="info-icon">${this.renderInfoIcon()}</span>
         </div>
       </aside>
+      <slot name="popover" class="popover" @slotchange=${
+        this.handlePopoverSlotChange
+      }></slot>
     `;
   }
 }
